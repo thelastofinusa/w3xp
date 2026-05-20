@@ -15,6 +15,9 @@
     },
     "clean": {
       "cache": false
+    },
+    "@w3docs/tsconfig#build": {
+      "outputs": []
     }
   }
 }

@@ -1,1 +1,2 @@
-export const W3DocPage = () => "Hello from @w3docs/ui";
+export { W3DocPage } from "./components/W3DocPage";
+export { Button } from "@/components/ui/button";

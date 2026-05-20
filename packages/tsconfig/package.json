@@ -6,6 +6,7 @@
     "base.json"
   ],
   "scripts": {
-    "build": "echo 'tsconfig ready'"
+    "build": "echo 'tsconfig ready'",
+    "clean": "rm -rf .turbo"
   }
 }
