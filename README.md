@@ -127,7 +127,6 @@ npx w3docs show
 ```bash
 ┌   w3docs  • Available smart contract languages
 │
-│
 │  ◆ Solidity → EVM Compatible Chains
 │    Command: npx w3docs init --sol
 │
@@ -139,7 +138,6 @@ npx w3docs show
 │
 │  ◆ Sui Move → Sui (coming soon)
 │    Command: npx w3docs init --sui
-│
 │
 └  Try it now → npx w3docs init --sol
 ```

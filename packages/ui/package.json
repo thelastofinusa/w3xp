@@ -10,7 +10,7 @@
     "dev": "vite build --watch",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist .turbo"
+    "clean": "rm -rf dist .turbo node_modules"
   },
   "peerDependencies": {
     "react": "^18.0.0",

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import color from "kleur";
+import color from "chalk";
 import { Command } from "commander";
 
 import pkg from "../package.json";
@@ -30,7 +30,7 @@ const generateCommand = program
 for (const contract of CONTRACT_TYPES) {
   generateCommand.option(
     `--${contract.value}`,
-    `generate documentation for ${color.cyan().bold(contract.label)} contracts`,
+    `generate documentation for ${color.cyan.bold(contract.label)} contracts`,
   );
 }
 
