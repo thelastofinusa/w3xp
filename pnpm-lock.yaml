@@ -108,6 +108,9 @@ importers:
       figlet:
         specifier: ^1.11.0
         version: 1.11.0
+      fs-extra:
+        specifier: ^11.3.5
+        version: 11.3.5
       gradient-string:
         specifier: ^3.0.0
         version: 3.0.0
@@ -124,9 +127,6 @@ importers:
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.41
-      fs-extra:
-        specifier: ^11.3.5
-        version: 11.3.5
       tsup:
         specifier: ^8.0.0
         version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.3)(typescript@5.9.3)

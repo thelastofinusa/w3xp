@@ -9,37 +9,26 @@ import { createSpinner, sleep } from "./utils";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Template directory lives in apps/templates/default
-const TEMPLATE_DIR = path.resolve(
-  __dirname,
-  "../../../../apps/templates/default",
-);
+const TEMPLATE_DIR = path.resolve(__dirname, "../templates/default");
 
 interface ScaffoldOptions {
-  projectName: string;
+  targetDir: string;
+  displayName: string;
   chain: string;
   address: string;
   verified: boolean;
   title?: string;
   language?: string;
-  autoInstall?: boolean; // we can add a --no-install flag later
 }
 
-/**
- * Detect the package manager from the user agent string.
- * Returns one of: npm, pnpm, yarn, bun, or npm as fallback.
- */
 function detectPackageManager(): string {
   const ua = process.env.npm_config_user_agent ?? "";
   if (ua.startsWith("pnpm")) return "pnpm";
   if (ua.startsWith("yarn")) return "yarn";
   if (ua.startsWith("bun")) return "bun";
-  return "npm"; // default
+  return "npm";
 }
 
-/**
- * Replace all {{key}} in the file content with the given values
- */
 function replacePlaceholders(
   content: string,
   values: Record<string, string>,
@@ -51,61 +40,60 @@ function replacePlaceholders(
 }
 
 export async function scaffoldProject(options: ScaffoldOptions) {
-  const { projectName, chain, address, verified, title, language } = options;
-  const targetDir = path.resolve(process.cwd(), projectName);
+  const { targetDir, displayName, chain, address, verified, title, language } =
+    options;
 
+  // Check for existing directory
   if (fs.existsSync(targetDir)) {
-    throw new Error(`Directory "${projectName}" already exists.`);
+    if (displayName === path.basename(process.cwd())) {
+      const files = fs.readdirSync(targetDir);
+      if (files.length > 0) {
+        throw new Error(
+          "The current directory is not empty. Please use an empty directory or specify a project name.",
+        );
+      }
+    } else {
+      throw new Error(`Directory "${displayName}" already exists.`);
+    }
   }
 
   const spinner = createSpinner("cyan");
-  spinner.start(color.cyan("Scaffolding documentation project"));
-  await sleep(1500);
+  spinner.start(color.cyan("Generating documentation project"));
 
-  // 1. Verify template exists and copy it
+  // 1. Verify template exists
   if (!fs.existsSync(TEMPLATE_DIR)) {
     spinner.stop("Template directory not found");
     throw new Error(`Template missing at ${TEMPLATE_DIR}`);
   }
+
+  // 2. Copy template and compile placeholders (fast, sync)
   fs.copySync(TEMPLATE_DIR, targetDir);
 
-  spinner.message(color.cyan("Copying default template"));
-  await sleep(1200);
-
-  spinner.message(color.cyan("Compiling .hbs files"));
-  await sleep(800);
-
-  // 2. Values to inject
   const values = {
-    projectName,
-    title: title || projectName,
+    projectName: displayName,
+    title: title || displayName,
     chain,
     address,
     verified: String(verified),
   };
 
-  // 3. Process .hbs files recursively
   const processDirectory = (dir: string) => {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name);
       if (entry.isDirectory()) {
+        if (entry.name === "node_modules") continue;
         processDirectory(fullPath);
       } else if (entry.name.endsWith(".hbs")) {
         let raw = fs.readFileSync(fullPath, "utf8");
         raw = replacePlaceholders(raw, values);
-
         const newPath = fullPath.replace(/\.hbs$/, "");
-
         if (newPath.endsWith(".json")) {
           try {
             const parsed = JSON.parse(raw);
             raw = JSON.stringify(parsed, null, 2);
-          } catch {
-            /* leave as-is if not valid JSON */
-          }
+          } catch {}
         }
-
         fs.writeFileSync(newPath, raw);
         fs.removeSync(fullPath);
       }
@@ -114,42 +102,50 @@ export async function scaffoldProject(options: ScaffoldOptions) {
 
   processDirectory(targetDir);
 
-  // 4. Detect package manager and install dependencies
+  // 3. Install dependencies (real time‑consuming step)
   const pm = detectPackageManager();
   spinner.message(color.cyan(`Installing dependencies with ${pm}`));
+  await sleep(50); // let the spinner render the new message
+
+  let installFailed = false;
   try {
     execSync(`${pm} install`, { cwd: targetDir, stdio: "pipe" });
-    await sleep(1000);
   } catch (error: any) {
-    spinner.stop(color.red("Dependency installation failed"));
-    p.log.warn(
-      `Installation failed. You can run \`cd ${projectName} && ${pm} install\` manually.`,
-    );
-    // Don't throw – project is still scaffolded
+    installFailed = true;
   }
 
-  spinner.stop(color.green("Project generated successfully."));
+  if (installFailed) {
+    spinner.stop(color.red("Dependency installation failed"));
+    p.log.warn(`Installation failed. You can run \`${pm} install\` manually.`);
+  } else {
+    spinner.stop(color.green("Project generated successfully."));
+  }
 
-  // Summary message
+  // Summary & next steps
+  const directoryLabel =
+    displayName === path.basename(process.cwd()) ? "./" : `./${displayName}`;
+
   p.log.message(
     [
       `${color.cyan("→")} ${color.bold("Language")}   ${color.gray(language ?? "Solidity")}`,
       `${color.cyan("→")} ${color.bold("Network")}    ${color.gray(chain)}`,
       `${color.cyan("→")} ${color.bold("Address")}    ${color.gray(address)}`,
-      `${color.cyan("→")} ${color.bold("Directory")}  ${color.gray(`./${projectName}`)}`,
+      `${color.cyan("→")} ${color.bold("Directory")}  ${color.gray(directoryLabel)}`,
     ].join("\n"),
   );
 
-  p.outro(
-    [
-      `${color.cyan(`Build complete. ${color.bold("Your on-chain interface is ready.")}`)}`,
-      "",
-      `${color.bold("Next steps:")}`,
-      ` ${color.cyan("$")} cd ${projectName}`,
-      ` ${color.cyan("$")} ${pm} install`,
-      ` ${color.cyan("$")} ${pm} run dev`,
-    ].join("\n"),
-  );
+  const nextSteps = [
+    `${color.cyan(`Build complete. ${color.bold("Your on-chain interface is ready.")}`)}`,
+    "",
+    `${color.bold("Next steps:")}`,
+  ];
+  if (displayName !== path.basename(process.cwd())) {
+    nextSteps.push(` ${color.cyan("$")} cd ${displayName}`);
+  }
+  nextSteps.push(` ${color.cyan("$")} ${pm} install`);
+  nextSteps.push(` ${color.cyan("$")} ${pm} run dev`);
+
+  p.outro(nextSteps.join("\n"));
 
   return targetDir;
 }

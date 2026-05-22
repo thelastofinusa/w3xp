@@ -6,6 +6,7 @@ import pkg from "../../package.json";
 import { CONTRACT_TYPES } from "../lib/constants";
 import { scaffoldProject } from "../lib/scaffold";
 import { createSpinner, renderIntro } from "../lib/utils";
+import path from "path";
 
 const { name, description } = pkg;
 
@@ -96,18 +97,29 @@ export default async function generateDocs(initialLanguage?: string) {
       process.exit(0);
     }
 
-    const projectName = (projectNameResult as string) || "w3docs";
+    let rawName = (projectNameResult as string)?.trim() || "w3docs";
+    let targetDir: string;
+    let displayName: string;
+
+    if (rawName === "." || rawName === "./") {
+      targetDir = process.cwd();
+      displayName = path.basename(targetDir);
+    } else {
+      targetDir = path.resolve(process.cwd(), rawName);
+      displayName = rawName;
+    }
 
     const spinner = createSpinner();
 
     try {
       await scaffoldProject({
-        projectName,
+        targetDir,
+        displayName,
         chain,
         address,
-        verified: true, // eventually will come from Etherscan
-        title: projectName, // or use a placeholder; later fetched from contract
-        language: selectedContract.label,
+        verified: true,
+        title: displayName,
+        language: selectedContract?.label,
       });
     } catch (error: any) {
       spinner.stop("Failed");

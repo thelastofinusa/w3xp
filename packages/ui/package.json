@@ -1,7 +1,7 @@
 {
   "name": "@w3docs/ui",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "private": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -10,7 +10,9 @@
     "dev": "vite build --watch",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist .turbo node_modules"
+    "clean": "rm -rf dist .turbo node_modules",
+    "pushout": "npm publish --access public",
+    "pushout-inc": "npm version patch --no-git-tag-version && pnpm pushout"
   },
   "peerDependencies": {
     "react": "^18.0.0",

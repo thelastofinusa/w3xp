@@ -13,7 +13,7 @@ export async function buildCommand() {
     process.exit(1);
   }
 
-  console.log("📦 Building project...");
+  console.log("Building project...");
   try {
     await execa("vite", ["build", "--config", "vite.config.ts"], {
       cwd,

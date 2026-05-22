@@ -13,7 +13,7 @@ export async function devCommand() {
     process.exit(1);
   }
 
-  console.log("🚀 Starting development server...");
+  console.log("Starting development server...");
   try {
     await execa("vite", ["--config", "vite.config.ts"], {
       cwd,

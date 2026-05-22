@@ -13,7 +13,7 @@ export async function previewCommand() {
     process.exit(1);
   }
 
-  console.log("🔍 Previewing production build...");
+  console.log("Previewing production build...");
   try {
     await execa("vite", ["preview", "--config", "vite.config.ts"], {
       cwd,
