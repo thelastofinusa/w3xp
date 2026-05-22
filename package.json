@@ -1,24 +1,27 @@
 {
   "name": "w3docs-monorepo",
+  "version": "0.0.1",
   "private": true,
-  "packageManager": "pnpm@9.14.4",
-  "engines": {
-    "node": ">=20"
-  },
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "typecheck": "turbo run typecheck",
-    "clean": "turbo run clean",
-    "cli": "pnpm --filter w3docs dev",
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "format": "turbo format",
+    "typecheck": "turbo typecheck",
+    "clean": "turbo clean",
     "web": "pnpm --filter web dev",
-    "demo": "pnpm --filter demo dev",
-    "pushout": "pnpm --filter w3docs pushout",
-    "pushout-inc": "pnpm --filter w3docs pushout-inc"
+    "cli": "pnpm --filter w3docs dev"
   },
   "devDependencies": {
-    "turbo": "^2.9.14",
-    "typescript": "^6.0.3"
+    "@w3docs/eslint-config": "workspace:*",
+    "@w3docs/typescript-config": "workspace:*",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "turbo": "^2.8.17",
+    "typescript": "5.9.3"
+  },
+  "packageManager": "pnpm@10.33.4",
+  "engines": {
+    "node": ">=20"
   }
 }

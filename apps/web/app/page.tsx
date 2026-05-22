@@ -1,6 +1,6 @@
 import Image from "next/image"
+import { Button } from "@w3docs/ui/components/button"
 import { imagePath } from "@typest/nextjs"
-import { Button } from "@/components/ui/button"
 import { siteConfig } from "@/config/site.config"
 
 export default function Page() {

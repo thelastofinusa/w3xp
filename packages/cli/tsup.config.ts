@@ -1,4 +1,4 @@
-import { defineConfig } from "tsup";
+import { defineConfig } from "tsup"
 
 export default defineConfig({
   entry: ["src/index.ts"],
@@ -17,7 +17,6 @@ export default defineConfig({
     "figlet",
     "gradient-string",
     "ora",
-    "@clack/prompts",
-    "@w3docs/core",
+    "@inquirer/prompts",
   ],
-});
+})

@@ -1,10 +1,10 @@
 import { Metadata } from "next"
+import { imagePath, assetPath } from "@typest/nextjs"
 
-import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
+import "@w3docs/ui/styles/globals.css"
 import { fontVariable } from "@/fonts"
 import { siteConfig } from "@/config/site.config"
-import { imagePath, assetPath } from "@typest/nextjs"
+import { ThemeProvider } from "@/components/theme-provider"
 
 export const metadata: Metadata = {
   title: {

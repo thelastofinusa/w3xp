@@ -47,4 +47,4 @@ export const CONTRACT_TYPES = [
       { label: "Devnet", value: "devnet" },
     ],
   },
-];
+]

@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn } from "@w3docs/ui/lib/utils"
 import localFont from "next/font/local"
 
 const fontSans = localFont({

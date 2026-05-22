@@ -1,1 +1,96 @@
-{}
+{
+  "name": "USDC Token",
+  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  "chain": "Ethereum Mainnet",
+  "verified": true,
+  "functions": [
+    {
+      "name": "balanceOf",
+      "type": "read",
+      "description": "Returns the token balance of an address.",
+      "inputs": [
+        {
+          "name": "account",
+          "type": "address",
+          "description": "Address to query the balance of."
+        }
+      ],
+      "outputs": [{ "type": "uint256" }]
+    },
+    {
+      "name": "allowance",
+      "type": "read",
+      "description": "Returns the remaining number of tokens that spender will be allowed to spend on behalf of owner.",
+      "inputs": [
+        { "name": "owner", "type": "address" },
+        { "name": "spender", "type": "address" }
+      ],
+      "outputs": [{ "type": "uint256" }]
+    },
+    {
+      "name": "totalSupply",
+      "type": "read",
+      "description": "Returns the total token supply in circulation.",
+      "inputs": [],
+      "outputs": [{ "type": "uint256" }]
+    },
+    {
+      "name": "decimals",
+      "type": "read",
+      "description": "Number of decimals used to format token amounts.",
+      "inputs": [],
+      "outputs": [{ "type": "uint8" }]
+    },
+    {
+      "name": "transfer",
+      "type": "write",
+      "description": "Moves `amount` tokens from the caller’s account to `recipient`.",
+      "inputs": [
+        { "name": "recipient", "type": "address" },
+        { "name": "amount", "type": "uint256" }
+      ],
+      "outputs": [{ "type": "bool" }]
+    },
+    {
+      "name": "approve",
+      "type": "write",
+      "description": "Sets `amount` as the allowance of `spender` over the caller’s tokens.",
+      "inputs": [
+        { "name": "spender", "type": "address" },
+        { "name": "amount", "type": "uint256" }
+      ],
+      "outputs": [{ "type": "bool" }]
+    },
+    {
+      "name": "transferFrom",
+      "type": "write",
+      "description": "Move tokens between accounts using a prior allowance.",
+      "inputs": [
+        { "name": "sender", "type": "address" },
+        { "name": "recipient", "type": "address" },
+        { "name": "amount", "type": "uint256" }
+      ],
+      "outputs": [{ "type": "bool" }]
+    }
+  ],
+  "events": [
+    {
+      "name": "Transfer",
+      "signature": "Transfer(address indexed from, address indexed to, uint256 value)",
+      "inputs": [
+        { "name": "from", "type": "address", "indexed": true },
+        { "name": "to", "type": "address", "indexed": true },
+        { "name": "value", "type": "uint256", "indexed": false }
+      ]
+    },
+    {
+      "name": "Approval",
+      "signature": "Approval(address indexed owner, address indexed spender, uint256 value)",
+      "inputs": [
+        { "name": "owner", "type": "address", "indexed": true },
+        { "name": "spender", "type": "address", "indexed": true },
+        { "name": "value", "type": "uint256", "indexed": false }
+      ]
+    }
+  ]
+}
