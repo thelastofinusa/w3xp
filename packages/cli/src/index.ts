@@ -1,13 +1,13 @@
-import color from "chalk"
+import chalk from "chalk"
 import { Command } from "commander"
 
 import pkg from "../package.json" with { type: "json" }
-import generateDocs from "./commands/docs.js"
-import showChains from "./commands/show.js"
-import { CONTRACT_TYPES } from "./lib/constants.js"
-import { devCommand } from "./commands/dev.js"
-import { buildCommand } from "./commands/build.js"
-import { previewCommand } from "./commands/preview.js"
+import generateDocs from "./commands/docs"
+import showChains from "./commands/show"
+import { CONTRACT_TYPES } from "./lib/constants"
+import { devCommand } from "./commands/dev"
+import { buildCommand } from "./commands/build"
+import { previewCommand } from "./commands/preview"
 
 const { name, version, description } = pkg
 
@@ -46,7 +46,7 @@ const generateCommand = program
 for (const contract of CONTRACT_TYPES) {
   generateCommand.option(
     `--${contract.value}`,
-    `generate documentation for ${color.cyan.bold(contract.label)} contracts`
+    `generate documentation for ${chalk.cyan.bold(contract.label)} contracts`
   )
 }
 

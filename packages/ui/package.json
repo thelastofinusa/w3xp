@@ -1,12 +1,13 @@
 {
   "name": "@w3docs/ui",
-  "version": "0.1.10",
+  "version": "0.2.3",
   "type": "module",
   "license": "MIT",
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --external react,react-dom --out-dir dist && cp src/styles/globals.css dist/globals.css",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "clean": "rm -rf .turbo dist node_modules",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm build",
     "pushout": "npm publish",
@@ -17,6 +18,7 @@
     "clsx": "^2.1.1",
     "hugeicons-proxy": "^1.0.10",
     "lucide-react": "^1.16.0",
+    "next-themes": "^0.4.6",
     "radix-ui": "^1.4.3",
     "shadcn": "^4.8.0",
     "tailwind-merge": "^3.6.0",

@@ -1,23 +1,26 @@
 import path from "path"
-import color from "chalk"
+import chalk from "chalk"
 import fs from "fs-extra"
 import figlet from "figlet"
 import * as p from "@clack/prompts"
-
+import { fetchEVMContract, fetchEVMContractByChainId } from "@w3docs/core/evm"
+import { CONTRACT_TYPES } from "../lib/constants"
+import { scaffoldProject } from "../lib/scaffold"
+import { createSpinner, renderIntro } from "../lib/utils"
 import pkg from "../../package.json" with { type: "json" }
-import { CONTRACT_TYPES } from "../lib/constants.js"
-import { scaffoldProject } from "../lib/scaffold.js"
-import { createSpinner, renderIntro } from "../lib/utils.js"
+
+// 0x1B76Fa05C76fB0B482C408c3380CD403a73a7E28
+// 11155420
 
 const { name, description } = pkg
 
 export default async function generateDocs(initialLanguage?: string) {
   const banner = figlet.textSync(name, { font: "ANSI Shadow" })
-  console.log(color.cyan(banner))
+  console.log(chalk.cyan(banner))
 
   try {
     renderIntro({
-      badge: `Welcome to ${color.bgCyan(` ${name} `)}`,
+      badge: `Welcome to ${chalk.bgCyan(` ${name} `)}`,
       title: description,
       iconColor: "cyan",
     })
@@ -56,6 +59,7 @@ export default async function generateDocs(initialLanguage?: string) {
     const chainResult = await p.select({
       message: selectedContract.networkMessage,
       options: selectedContract.networks,
+      maxItems: 10,
     })
 
     if (p.isCancel(chainResult)) {
@@ -63,7 +67,28 @@ export default async function generateDocs(initialLanguage?: string) {
       process.exit(0)
     }
 
-    const chain = chainResult as string
+    let chain = chainResult as string
+
+    // If user chose "Custom", ask for the chain ID
+    if (chain === "custom") {
+      const customChainId = await p.text({
+        message: "Enter the EVM chain ID (e.g., 137 for Polygon):",
+        placeholder: "137",
+        validate(value) {
+          const num = Number(value)
+          if (!value?.trim() || isNaN(num) || num <= 0)
+            return "Please enter a valid positive chain ID"
+          return undefined
+        },
+      })
+
+      if (p.isCancel(customChainId)) {
+        p.cancel("Operation cancelled.")
+        process.exit(0)
+      }
+
+      chain = (customChainId as string).trim()
+    }
 
     // Step 3: Contract address
     const addressResult = await p.text({
@@ -120,19 +145,25 @@ export default async function generateDocs(initialLanguage?: string) {
       // When targetDir is the current directory, check if it's empty
       if (targetDir === process.cwd()) {
         const files = fs.readdirSync(targetDir).filter(
-          (f) => !f.startsWith(".") || f === ".git" // allow .git if present, otherwise ignore dotfiles
+          (f) => !f.startsWith(".") // ignore all dotfiles
         )
         if (files.length === 0) break // empty dir – fine to use
       }
 
+      const isCurrentDir = targetDir === process.cwd()
+
       const action = await p.select({
-        message: `Directory ${color.redBright(displayName)} already exists. What would you like to do?`,
+        message: `Directory ${chalk.redBright(displayName)} already exists. What would you like to do?`,
         options: [
-          {
-            label: "Overwrite",
-            value: "overwrite",
-            hint: "delete and recreate",
-          },
+          ...(isCurrentDir
+            ? []
+            : [
+                {
+                  label: "Overwrite",
+                  value: "overwrite",
+                  hint: "delete and recreate",
+                },
+              ]),
           { label: "Rename", value: "rename", hint: "choose a new name" },
           { label: "Cancel", value: "cancel", hint: "exit without changes" },
         ],
@@ -172,9 +203,50 @@ export default async function generateDocs(initialLanguage?: string) {
     }
 
     // Now targetDir either didn't exist or has been cleared
-    const spinner = createSpinner()
-    spinner.start(color.cyan("Generating documentation project"))
 
+    // -------- Fetch contract data --------
+
+    const spinner = createSpinner()
+
+    let contractData: string | undefined
+    let rawAbi: string | undefined
+    let contractName = displayName
+
+    const isCustomChain = !isNaN(Number(chain))
+
+    spinner.start(chalk.cyan("Resolving contract metadata"))
+
+    try {
+      const result = isCustomChain
+        ? await fetchEVMContractByChainId(Number(chain), address)
+        : await fetchEVMContract(chain, address)
+
+      contractData = JSON.stringify(result.contract, null, 2)
+      rawAbi = JSON.stringify(result.rawAbi, null, 2)
+      contractName = result.contract.name
+
+      spinner.stop(chalk.green("Contract metadata resolved"))
+    } catch (error: any) {
+      spinner.stop(chalk.red("Unable to resolve contract metadata"))
+      p.log.error(error.message)
+
+      const useSample = await p.confirm({
+        message: "No verified ABI found. Use sample data instead?",
+      })
+
+      if (!useSample) {
+        p.log.error(chalk.red("Aborting. Verify the contract and try again."))
+        process.exit(1)
+      }
+
+      p.log.warn(
+        chalk.yellow(
+          "Using sample contract data. The explorer will display demo content."
+        )
+      )
+    }
+
+    // -------- Scaffold the project --------
     try {
       await scaffoldProject({
         targetDir,
@@ -182,17 +254,19 @@ export default async function generateDocs(initialLanguage?: string) {
         chain,
         address,
         verified: true,
-        title: displayName,
+        title: contractName,
         language: selectedContract?.label,
         spinner,
+        contractData,
+        rawAbi,
       })
     } catch (error: any) {
-      spinner.stop(color.red("Failed"))
+      spinner.stop(chalk.red("Failed"))
       p.log.error(error.message)
       process.exit(1)
     }
   } catch (error: any) {
-    p.outro(color.red(error.message))
+    p.outro(chalk.red(error.message))
     process.exit(1)
   }
 }

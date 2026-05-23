@@ -1,4 +1,4 @@
-import color, { type ColorName } from "chalk"
+import chalk, { type ColorName } from "chalk"
 import * as p from "@clack/prompts"
 
 export const sleep = (ms: number) =>
@@ -17,14 +17,21 @@ export function renderIntro({
   icon = "⬒",
   iconColor = "cyan",
 }: IntroOptions) {
-  const iconColored = (color[iconColor] || color.cyan)(icon)
-  p.intro(`${iconColored} ${badge} ${color.dim("→")} ${color.white(title)}`)
+  const iconColored = (chalk[iconColor] || chalk.cyan)(icon)
+  p.intro(`${iconColored} ${badge} ${chalk.dim("→")} ${chalk.white(title)}`)
 }
 
 /** Create a spinner with the same custom frames as before */
-export function createSpinner() {
+export function createSpinner(
+  colorOrGetter: ColorName | (() => ColorName) = "cyan"
+) {
   return p.spinner({
     frames: ["⬒", "⬔", "⬓", "⬕"],
-    styleFrame: (frame) => color.cyan(frame),
+    styleFrame: (frame) => {
+      const c =
+        typeof colorOrGetter === "function" ? colorOrGetter() : colorOrGetter
+      const fn = chalk[c] as (text: string) => string
+      return fn(frame)
+    },
   })
 }

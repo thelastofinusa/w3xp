@@ -1,6 +1,6 @@
 {
   "name": "w3docs",
-  "version": "0.1.17",
+  "version": "0.2.3",
   "description": "Document smart contracts with ease",
   "private": false,
   "type": "module",
@@ -17,14 +17,15 @@
     "dev": "pnpm build && node dist/index.js",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist .turbo node_modules",
+    "clean": "rm -rf .turbo dist node_modules",
     "sync-template": "node scripts/sync-template-version.js",
     "prepublishOnly": "pnpm sync-template && pnpm build && chmod +x dist/index.js",
     "pushout": "npm publish",
     "pushout-inc": "npm version patch --no-git-tag-version && pnpm pushout"
   },
   "dependencies": {
-    "@clack/prompts": "^0.9.0",
+    "@clack/prompts": "^1.4.0",
+    "@w3docs/core": "^0.2.3",
     "chalk": "^5.6.2",
     "commander": "^14.0.3",
     "execa": "^9.6.1",

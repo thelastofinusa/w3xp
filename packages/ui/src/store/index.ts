@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { TabKey } from "../types/index.js"
+import { TabKey } from "../types/index"
 
 interface UIState {
   search: string

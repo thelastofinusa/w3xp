@@ -2,8 +2,8 @@
 import { useState } from "react"
 import { Icons } from "hugeicons-proxy"
 import { UnifiedContract } from "@w3docs/ui/types/index"
-import { Container } from "../shared/container.js"
-import { Separator } from "../separator.js"
+import { Container } from "../shared/container"
+import { Separator } from "../separator"
 
 export const Hero = ({ contract }: { contract: UnifiedContract }) => {
   const [copied, setCopied] = useState(false)
@@ -51,7 +51,7 @@ export const Hero = ({ contract }: { contract: UnifiedContract }) => {
             </span>
             <span className="text-muted-foreground transition-colors hover:text-primary">
               {copied ? (
-                <Icons.CopyCheck className="size-3.5 text-success" />
+                <Icons.Tick01Icon className="size-3.5 text-success" />
               ) : (
                 <Icons.CopyIcon className="size-3.5" />
               )}
@@ -60,9 +60,7 @@ export const Hero = ({ contract }: { contract: UnifiedContract }) => {
         </div>
 
         <p className="mt-4 max-w-xl text-sm text-muted-foreground">
-          Interactive documentation generated from the contract ABI. Inspect
-          read methods, simulate writes, and listen to events — all from one
-          place.
+          {contract.description}
         </p>
       </Container>
     </section>

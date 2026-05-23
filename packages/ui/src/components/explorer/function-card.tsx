@@ -1,11 +1,11 @@
 import { useState } from "react"
 
-import { CodeBlock } from "./code-block.js"
-import { ParamInput } from "./param-input.js"
+import { CodeBlock } from "./code-block"
+import { ParamInput } from "./param-input"
 import { Icons } from "hugeicons-proxy"
 import { ContractFunction } from "@w3docs/ui/types/index"
 import { cn } from "@w3docs/ui/lib/utils"
-import { Button } from "../button.js"
+import { Button } from "../button"
 
 type Mode = "read" | "write"
 
@@ -84,9 +84,11 @@ export function FunctionCard({
           {mode === "read" ? "GET" : "POST"}
         </span>
         <span className="font-mono text-sm font-semibold">{fn.name}</span>
-        <span className="hidden text-sm text-muted-foreground md:inline">
-          {fn.description}
-        </span>
+        {fn.description && (
+          <span className="hidden text-sm text-muted-foreground md:inline">
+            {fn.description}
+          </span>
+        )}
         <Icons.ArrowDown01Icon
           className={cn(
             "ml-auto size-4 text-muted-foreground transition-transform",

@@ -1,0 +1,32 @@
+{
+  "name": "@w3docs/core",
+  "version": "0.2.3",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "pushout": "npm publish",
+    "pushout-inc": "npm version patch --no-git-tag-version && pnpm pushout"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.5.0"
+  },
+  "exports": {
+    "./evm": "./dist/evm/index.js",
+    "./types": "./dist/types/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@shazow/whatsabi": "^0.26.0",
+    "ethers": "^6.16.0"
+  }
+}

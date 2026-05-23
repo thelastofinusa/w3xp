@@ -1,7 +1,7 @@
 import { ContractFunction } from "@w3docs/ui/types/index"
 import { Info } from "lucide-react"
 import { useState } from "react"
-import { Input } from "../input.js"
+import { Input } from "../input"
 
 export function ParamInput({
   param,

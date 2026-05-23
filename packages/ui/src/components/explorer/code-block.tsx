@@ -26,7 +26,7 @@ export function CodeBlock({
             className="inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-primary"
           >
             {copied ? (
-              <Icons.CopyCheck className="size-3.5 text-success" />
+              <Icons.Tick01Icon className="size-3.5 text-success" />
             ) : (
               <Icons.CopyIcon className="size-3.5" />
             )}

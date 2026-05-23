@@ -1,44 +1,32 @@
 import { useUIStore } from "@w3docs/ui/store/index"
 import { Icons } from "hugeicons-proxy"
-import { InputGroup, InputGroupAddon, InputGroupInput } from "../input-group.js"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../select.js"
-import { Container } from "./container.js"
-
-const CHAINS = ["Ethereum", "Polygon", "Solana", "Sui", "Starknet"] as const
+import { InputGroup, InputGroupAddon, InputGroupInput } from "../input-group"
+import { Container } from "./container"
+import { Button } from "../button"
+import { useEffect, useState } from "react"
+import { useTheme } from "next-themes"
+import { Logo } from "./logo"
 
 export function Header() {
-  const { search, setSearch, chain, setChain } = useUIStore()
+  const { search, setSearch } = useUIStore()
+  const { resolvedTheme, setTheme } = useTheme()
+
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md">
       <Container className="flex h-18 items-center gap-4">
-        <a
-          href="/"
-          className="flex items-center gap-2 font-medium tracking-tight"
+        <div
+          role="button"
+          className="flex cursor-pointer items-center gap-2 font-medium tracking-tight"
         >
-          <img
-            src="/logo-white.png"
-            alt="w3docs"
-            width={22}
-            height={22}
-            className="hidden dark:block"
-          />
-          <img
-            src="/logo-black.png"
-            alt="w3docs"
-            width={22}
-            height={22}
-            className="block dark:hidden"
-          />
+          <Logo className="size-[22px] fill-foreground text-foreground" />
           <span>w3docs</span>
-        </a>
+        </div>
         <InputGroup className="mx-auto hidden w-full max-w-md md:flex">
           <InputGroupInput
             value={search}
@@ -50,20 +38,25 @@ export function Header() {
           </InputGroupAddon>
         </InputGroup>
         <div className="relative ml-auto">
-          <Select value={chain} onValueChange={setChain}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="Ethereum" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {CHAINS.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            onClick={() =>
+              setTheme(resolvedTheme === "dark" ? "light" : "dark")
+            }
+            className="pointer-events-auto"
+          >
+            {mounted ? (
+              resolvedTheme === "dark" ? (
+                <Icons.Sun02Icon className="size-4" />
+              ) : (
+                <Icons.GibbousMoonIcon className="size-4" />
+              )
+            ) : (
+              <div className="size-4" />
+            )}
+          </Button>
         </div>
       </Container>
       {/* Mobile search */}

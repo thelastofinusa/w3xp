@@ -9,6 +9,8 @@
     "format": "turbo format",
     "typecheck": "turbo typecheck",
     "clean": "turbo clean",
+    "pushout": "pnpm --filter @w3docs/core pushout && pnpm --filter @w3docs/ui pushout && pnpm --filter w3docs pushout",
+    "pushout-inc": "pnpm --filter @w3docs/core pushout-inc && pnpm --filter @w3docs/ui pushout-inc && pnpm --filter w3docs pushout-inc",
     "web": "pnpm --filter web dev",
     "cli": "pnpm --filter w3docs dev"
   },

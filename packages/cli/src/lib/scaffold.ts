@@ -1,23 +1,27 @@
 import fs from "fs-extra"
 import path from "path"
 import { execa } from "execa"
-import color from "chalk"
+import chalk from "chalk"
 import * as p from "@clack/prompts"
 import { fileURLToPath } from "url"
-import { sleep } from "./utils.js"
 
 // ---- locate the CLI package root ----
 function getPackageRoot(): string {
   const currentDir = path.dirname(fileURLToPath(import.meta.url))
+
   let dir = currentDir
+
   while (true) {
     if (fs.existsSync(path.join(dir, "package.json"))) {
       return dir
     }
+
     const parent = path.dirname(dir)
+
     if (parent === dir) {
       throw new Error("Could not find package root")
     }
+
     dir = parent
   }
 }
@@ -33,14 +37,18 @@ interface ScaffoldOptions {
   verified: boolean
   title?: string
   language?: string
-  spinner: ReturnType<typeof p.spinner> // required, created in docs.ts
+  spinner: ReturnType<typeof p.spinner>
+  contractData?: string
+  rawAbi?: string
 }
 
 function detectPackageManager(): string {
   const ua = process.env.npm_config_user_agent ?? ""
+
   if (ua.startsWith("pnpm")) return "pnpm"
   if (ua.startsWith("yarn")) return "yarn"
   if (ua.startsWith("bun")) return "bun"
+
   return "npm"
 }
 
@@ -62,48 +70,60 @@ export async function scaffoldProject(options: ScaffoldOptions) {
     address,
     verified,
     title,
-    language,
     spinner,
+    contractData,
+    rawAbi,
   } = options
-
-  // Check for existing directory
-  if (fs.existsSync(targetDir)) {
-    throw new Error(`Directory "${displayName}" already exists (unexpected).`)
-  }
 
   // 1. Verify template exists
   if (!fs.existsSync(TEMPLATE_DIR)) {
     throw new Error(`Template missing at ${TEMPLATE_DIR}`)
   }
 
-  // 2. Copy template and compile placeholders
+  // 2. Generate project
+  spinner.start(chalk.cyan("Scaffolding documentation project"))
+
   fs.copySync(TEMPLATE_DIR, targetDir)
 
   const values = {
     projectName: displayName,
     title: title || displayName,
+    description:
+      "Interactive documentation generated from the contract ABI. Inspect read methods, simulate writes, and listen to events — all from one place.",
     chain,
     address,
     verified: String(verified),
+    generatedAt: new Date().toISOString(),
+    htmlTitle:
+      displayName !== (title || displayName)
+        ? `${title || displayName} – ${displayName}`
+        : `${displayName} – w3docs`,
   }
 
   const processDirectory = (dir: string) => {
     const entries = fs.readdirSync(dir, { withFileTypes: true })
+
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name)
+
       if (entry.isDirectory()) {
         if (entry.name === "node_modules") continue
+
         processDirectory(fullPath)
       } else if (entry.name.endsWith(".hbs")) {
         let raw = fs.readFileSync(fullPath, "utf8")
+
         raw = replacePlaceholders(raw, values)
+
         const newPath = fullPath.replace(/\.hbs$/, "")
+
         if (newPath.endsWith(".json")) {
           try {
             const parsed = JSON.parse(raw)
             raw = JSON.stringify(parsed, null, 2)
           } catch {}
         }
+
         fs.writeFileSync(newPath, raw)
         fs.removeSync(fullPath)
       }
@@ -112,48 +132,61 @@ export async function scaffoldProject(options: ScaffoldOptions) {
 
   processDirectory(targetDir)
 
+  if (contractData) {
+    fs.writeFileSync(
+      path.join(targetDir, ".w3docs", "contract.json"),
+      contractData
+    )
+  }
+
+  if (rawAbi) {
+    fs.writeFileSync(path.join(targetDir, ".w3docs", "abi.json"), rawAbi)
+  }
+
+  spinner.stop(chalk.green("Project scaffolded successfully"))
+
   // 3. Install dependencies
   const pm = detectPackageManager()
-  spinner.message(color.cyan(`Installing dependencies with ${pm}`))
+
+  spinner.start(chalk.cyan(`Installing dependencies (${pm})`))
 
   let installFailed = false
+
   try {
-    await execa(pm, ["install"], { cwd: targetDir, stdio: "pipe" })
+    await execa(pm, ["install"], {
+      cwd: targetDir,
+      stdio: "pipe",
+    })
   } catch {
     installFailed = true
   }
 
   if (installFailed) {
-    spinner.error(color.red("Dependency installation failed"))
-    p.log.warn(`Installation failed. You can run \`${pm} install\` manually.`)
-  } else {
-    spinner.stop(color.green("Project generated successfully."))
+    spinner.stop(chalk.red("Dependency installation failed"))
+
+    p.log.warn(
+      chalk.yellow(`Run ${chalk.bold(`${pm} install`)} manually to continue.`)
+    )
+
+    return targetDir
   }
 
-  // Summary & next steps (spinner will be stopped by caller)
-  const directoryLabel =
-    displayName === path.basename(process.cwd()) ? "./" : `./${displayName}`
+  spinner.stop(chalk.green("Dependencies installed"))
 
-  p.log.message(
-    [
-      `${color.cyan("→")} ${color.bold("Language")}   ${color.gray(language ?? "Solidity")}`,
-      `${color.cyan("→")} ${color.bold("Network")}    ${color.gray(chain)}`,
-      `${color.cyan("→")} ${color.bold("Address")}    ${color.gray(address)}`,
-      `${color.cyan("→")} ${color.bold("Directory")}  ${color.gray(directoryLabel)}`,
-    ].join("\n")
-  )
+  // 4. Start dev server
+  spinner.start(chalk.cyan("Starting development server"))
 
-  const nextSteps = [
-    `${color.green(`Build complete. ${color.bold("Your on-chain interface is ready.")}`)}`,
-    "",
-    `${color.bold("Next steps:")}`,
-  ]
-  if (displayName !== path.basename(process.cwd())) {
-    nextSteps.push(` ${color.cyan("$")} cd ${displayName}`)
+  try {
+    await execa(pm, ["run", "dev"], {
+      cwd: targetDir,
+      stdio: "inherit",
+      preferLocal: true,
+    })
+    spinner.stop(chalk.green("Development server started"))
+  } catch (error: any) {
+    spinner.stop(chalk.red("Development server exited"))
+    p.log.error(error.message)
   }
-  nextSteps.push(` ${color.cyan("$")} ${pm} run dev`)
-
-  p.outro(nextSteps.join("\n"))
 
   return targetDir
 }

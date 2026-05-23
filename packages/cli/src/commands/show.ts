@@ -1,13 +1,14 @@
-import color from "chalk"
+import * as p from "@clack/prompts"
+import chalk from "chalk"
 import pkg from "../../package.json" with { type: "json" }
-import { CONTRACT_TYPES } from "../lib/constants.js"
-import { renderIntro } from "../lib/utils.js"
+import { CONTRACT_TYPES } from "../lib/constants"
+import { renderIntro } from "../lib/utils"
 
 const { name } = pkg
 
 export default async function showChains() {
   renderIntro({
-    badge: color.bgCyan(` ${name} `),
+    badge: chalk.bgCyan(` ${name} `),
     title: "Available smart contract languages",
     iconColor: "cyanBright",
   })
@@ -17,18 +18,18 @@ export default async function showChains() {
 
     const line = contract.available
       ? [
-          `${color.cyan("◆")} ${color.bold(contract.label)} ${color.gray("→")} ${color.white(contract.hint)}`,
-          `  ${color.white("Command:")} ${color.cyan(command)}`,
+          `${chalk.cyan("◆")} ${chalk.bold(contract.label)} ${chalk.gray("→")} ${chalk.white(contract.hint)}`,
+          `  ${chalk.white("Command:")} ${chalk.cyan(command)}`,
         ].join("\n")
       : [
-          `${color.gray("◆")} ${color.bold(contract.label)} ${color.gray("→")} ${color.gray(contract.hint)} ${color.gray("(coming soon)")}`,
-          `  ${color.white("Command:")} ${color.gray(command)}`,
+          `${chalk.gray("◆")} ${chalk.bold(contract.label)} ${chalk.gray("→")} ${chalk.gray(contract.hint)} ${chalk.gray("(coming soon)")}`,
+          `  ${chalk.white("Command:")} ${chalk.gray(command)}`,
         ].join("\n")
 
-    console.log(line)
+    p.log.message(line)
   }
 
-  console.log(
-    `${color.white("Try it now")} ${color.gray("→")} ${color.cyan(" npx w3docs init --sol ")}`
+  p.outro(
+    `${chalk.white("Try it now")} ${chalk.gray("→")} ${chalk.cyan(" npx w3docs init --sol ")}`
   )
 }

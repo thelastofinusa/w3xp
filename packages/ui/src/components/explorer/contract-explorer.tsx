@@ -1,9 +1,10 @@
 import { useUIStore } from "@w3docs/ui/store/index"
 import { UnifiedContract } from "@w3docs/ui/types/index"
-import { Hero } from "./hero.js"
-import { TabBar } from "./tabBar.js"
-import { FunctionCard } from "./function-card.js"
-import { EventCard } from "./event-card.js"
+import { Hero } from "./hero"
+import { TabBar } from "./tabBar"
+import { FunctionCard } from "./function-card"
+import { EventCard } from "./event-card"
+import { Container } from "../shared/container"
 
 export function ContractExplorer({ contract }: { contract: UnifiedContract }) {
   const { search, activeTab, setActiveTab } = useUIStore()
@@ -31,13 +32,11 @@ export function ContractExplorer({ contract }: { contract: UnifiedContract }) {
           events: events.length,
         }}
       />
-      <div className="mx-auto max-w-5xl px-6 py-6 md:py-10">
+      <Container className="py-6 md:py-10">
         {activeTab === "read" && (
           <div className="space-y-3">
             {reads.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                No read functions found.
-              </p>
+              <EmptyState msg="No read functions found." />
             )}
             {reads.map((fn) => (
               <FunctionCard key={fn.name} fn={fn} mode="read" />
@@ -47,9 +46,7 @@ export function ContractExplorer({ contract }: { contract: UnifiedContract }) {
         {activeTab === "write" && (
           <div className="space-y-3">
             {writes.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                No write functions found.
-              </p>
+              <EmptyState msg="No write functions found." />
             )}
             {writes.map((fn) => (
               <FunctionCard key={fn.name} fn={fn} mode="write" />
@@ -58,21 +55,19 @@ export function ContractExplorer({ contract }: { contract: UnifiedContract }) {
         )}
         {activeTab === "events" && (
           <div className="space-y-3">
-            {events.length === 0 && (
-              <p className="text-sm text-muted-foreground">No events found.</p>
-            )}
+            {events.length === 0 && <EmptyState msg="No events found." />}
             {events.map((ev) => (
               <EventCard key={ev.name} ev={ev} />
             ))}
           </div>
         )}
-      </div>
+      </Container>
     </div>
   )
 }
 
-const EmptyState = () => (
+const EmptyState = ({ msg }: { msg?: string }) => (
   <div className="rounded-lg border border-dashed border-border bg-card/50 px-6 py-16 text-center text-sm text-muted-foreground md:py-32 lg:py-52">
-    No matches for your search.
+    {msg || "No matches for your search."}
   </div>
 )

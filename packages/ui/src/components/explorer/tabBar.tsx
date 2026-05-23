@@ -1,6 +1,6 @@
 import { TabKey } from "@w3docs/ui/types/index"
 import { Icons } from "hugeicons-proxy"
-import { Container } from "../shared/container.js"
+import { Container } from "../shared/container"
 
 const TABS = [
   {

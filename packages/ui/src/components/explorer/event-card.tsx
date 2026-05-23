@@ -2,8 +2,8 @@ import { ContractEvent } from "@w3docs/ui/types/index"
 import { Icons } from "hugeicons-proxy"
 import { Radio } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { CodeBlock } from "./code-block.js"
-import { Button } from "../button.js"
+import { CodeBlock } from "./code-block"
+import { Button } from "../button"
 
 export function EventCard({ ev }: { ev: ContractEvent }) {
   const [open, setOpen] = useState(false)
@@ -40,6 +40,11 @@ export function EventCard({ ev }: { ev: ContractEvent }) {
           EVENT
         </span>
         <span className="font-mono text-sm font-semibold">{ev.name}</span>
+        {ev.description && (
+          <span className="hidden text-sm text-muted-foreground md:inline">
+            {ev.description}
+          </span>
+        )}
         <Icons.ArrowDown01Icon
           className={`ml-auto h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
         />
