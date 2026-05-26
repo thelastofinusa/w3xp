@@ -6,6 +6,7 @@ import { Button } from "../button"
 import { useEffect, useState } from "react"
 import { useTheme } from "next-themes"
 import { Logo } from "./logo"
+import { ConnectWallet } from "../provider/web3.provider"
 
 export function Header() {
   const { search, setSearch } = useUIStore()
@@ -14,6 +15,7 @@ export function Header() {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 
@@ -24,7 +26,7 @@ export function Header() {
           role="button"
           className="flex cursor-pointer items-center gap-2 font-medium tracking-tight"
         >
-          <Logo className="size-[22px] fill-foreground text-foreground" />
+          <Logo className="size-5.5 fill-foreground text-foreground" />
           <span>w3docs</span>
         </div>
         <InputGroup className="mx-auto hidden w-full max-w-md md:flex">
@@ -37,7 +39,8 @@ export function Header() {
             <Icons.Search01Icon />
           </InputGroupAddon>
         </InputGroup>
-        <div className="relative ml-auto">
+        <div className="relative ml-auto flex items-center gap-2">
+          <ConnectWallet />
           <Button
             type="button"
             size="icon"

@@ -1,4 +1,5 @@
 "use client"
+import * as viemChains from "viem/chains"
 import { useState } from "react"
 import { Icons } from "hugeicons-proxy"
 import { UnifiedContract } from "@w3docs/ui/types/index"
@@ -13,6 +14,11 @@ export const Hero = ({ contract }: { contract: UnifiedContract }) => {
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+
+  const chainName =
+    Object.values(viemChains).find(
+      (c) => "id" in c && String(c.id) === contract.chain
+    )?.name || `Chain ${contract.chain}`
 
   return (
     <section
@@ -35,7 +41,7 @@ export const Hero = ({ contract }: { contract: UnifiedContract }) => {
         <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
             <Icons.Blockchain01Icon className="size-4" />
-            {contract.chain}
+            {chainName}
           </span>
           <Separator
             orientation="vertical"

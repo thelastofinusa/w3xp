@@ -8,11 +8,13 @@ export function ParamInput({
   value,
   onChange,
   accent = "primary",
+  disabled = false,
 }: {
   param: ContractFunction["inputs"][number]
   value: string
   onChange: (v: string) => void
   accent?: "primary" | "warning" | "success"
+  disabled?: boolean
 }) {
   const [showTip, setShowTip] = useState(false)
   const ringClass =
@@ -57,7 +59,8 @@ export function ParamInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={`Enter ${param.type}`}
-        className={`h-9 font-mono ${ringClass}`}
+        className={`h-9 ${ringClass}`}
+        disabled={disabled}
       />
     </div>
   )

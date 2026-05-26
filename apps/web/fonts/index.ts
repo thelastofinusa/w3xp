@@ -8,7 +8,7 @@ const fontSans = localFont({
 })
 
 const fontMono = localFont({
-  src: "./GeistMono/GeistMono-VariableFont_wght.ttf",
+  src: "./JetBrainsMono/JetBrainsMono-VariableFont_wght.ttf",
   variable: "--font-mono",
   preload: true,
 })

@@ -9,6 +9,6 @@
       "@w3docs/ui/types/*": ["./src/types/*"]
     }
   },
-  "include": [".", "../../apps/web/fonts"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

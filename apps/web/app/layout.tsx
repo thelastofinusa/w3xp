@@ -1,7 +1,9 @@
 import { Metadata } from "next"
 import { imagePath, assetPath } from "@typest/nextjs"
 
-import "@w3docs/ui/styles/globals.css"
+// Suppress missing type declarations for this side-effect style import
+// @ts-ignore
+import "@w3docs/ui/styles"
 import { fontVariable } from "@/fonts"
 import { siteConfig } from "@/config/site.config"
 import { ThemeProvider } from "@/components/theme-provider"

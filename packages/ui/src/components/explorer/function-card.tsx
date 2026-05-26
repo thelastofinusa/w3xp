@@ -1,241 +1,334 @@
-import { useState } from "react"
+"use client"
+
+import { useMemo, useState } from "react"
+import {
+  Abi,
+  BaseError,
+  ContractFunctionRevertedError,
+  RpcRequestError,
+} from "viem"
+
+import {
+  readContract,
+  simulateContract,
+  waitForTransactionReceipt,
+  writeContract,
+} from "wagmi/actions"
+
+import { useConnection, useConfig } from "wagmi"
+
+import { AccordionContent, AccordionItem, AccordionTrigger } from "../accordion"
 
 import { CodeBlock } from "./code-block"
 import { ParamInput } from "./param-input"
+
 import { Icons } from "hugeicons-proxy"
+
 import { ContractFunction } from "@w3docs/ui/types/index"
-import { cn } from "@w3docs/ui/lib/utils"
+
+import { cn, getExplorerUrlForTx } from "@w3docs/ui/lib/utils"
+
 import { Button } from "../button"
+import { ConnectWallet } from "../provider/web3.provider"
 
 type Mode = "read" | "write"
+
+type ResponseState = {
+  value: string
+  timestamp: string
+  gas: string
+  flash: number
+}
+
+function parseInputValue(value: string, type: string): unknown {
+  if (value === "") return undefined
+
+  try {
+    if (type.endsWith("[]")) {
+      return value.split(",").map((v) => v.trim())
+    }
+
+    if (type.includes("uint") || type.includes("int")) {
+      return BigInt(value)
+    }
+
+    if (type === "bool") {
+      return value === "true"
+    }
+
+    if (type.startsWith("tuple")) {
+      return JSON.parse(value)
+    }
+
+    return value
+  } catch {
+    return undefined
+  }
+}
+
+function serialize(value: unknown) {
+  return JSON.stringify(
+    value,
+    (_, v) => (typeof v === "bigint" ? v.toString() : v),
+    2
+  )
+}
+
+export function getContractError(error: unknown): string {
+  if (error instanceof BaseError) {
+    const revertedError = error.walk(
+      (err) => err instanceof ContractFunctionRevertedError
+    )
+
+    if (revertedError instanceof ContractFunctionRevertedError) {
+      return (
+        revertedError.reason ||
+        revertedError.shortMessage ||
+        "Transaction reverted"
+      )
+    }
+
+    const rpcError = error.walk((err) => err instanceof RpcRequestError)
+
+    if (rpcError instanceof RpcRequestError) {
+      return rpcError.details.replace("execution reverted: ", "")
+    }
+
+    return error.shortMessage || error.message || "Something went wrong."
+  }
+
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  return "Something went wrong."
+}
 
 export function FunctionCard({
   fn,
   mode,
+  abi,
+  contractAddress,
+  chainId,
 }: {
   fn: ContractFunction
   mode: Mode
+  abi?: readonly unknown[] | Abi
+  contractAddress?: `0x${string}`
+  chainId?: number
 }) {
-  const [open, setOpen] = useState(false)
+  const config = useConfig()
+
+  const { address, isConnected } = useConnection()
+
+  const [loading, setLoading] = useState(false)
+
   const [values, setValues] = useState<Record<string, string>>(() =>
     Object.fromEntries(fn.inputs.map((p) => [p.name, ""]))
   )
-  const [response, setResponse] = useState<{
-    value: string
-    timestamp: string
-    gas: string
-    flash: number
-  } | null>(null)
-  const [walletConnected, setWalletConnected] = useState(false)
-  const [executing, setExecuting] = useState(false)
+
+  const [response, setResponse] = useState<ResponseState | null>(null)
+
+  const [error, setError] = useState<string | null>(null)
 
   const accentText = mode === "read" ? "text-success" : "text-warning"
+
   const accentBg = mode === "read" ? "bg-success/10" : "bg-warning/10"
+
   const accentBorder =
-    mode === "read" ? "border-success/30" : "border-warning/30"
+    mode === "read"
+      ? "data-[state=open]:border-success/40 data-[state=open]:bg-success/5"
+      : "data-[state=open]:border-warning/40 data-[state=open]:bg-warning/5"
+
   const buttonVariant = mode === "read" ? "success" : "warning"
 
-  const handleTry = () => {
-    if (mode === "read") {
-      setResponse({
-        value: JSON.stringify({ result: "0x..." }, null, 2),
-        timestamp: new Date().toLocaleTimeString(),
-        gas: `${Math.floor(20000 + Math.random() * 4000).toLocaleString()}`,
-        flash: Date.now(),
-      })
-    } else {
-      setExecuting(true)
-      setTimeout(() => {
-        setExecuting(false)
-        setResponse({
-          value: `0x${Math.random().toString(16).slice(2).padEnd(64, "0").slice(0, 64)}`,
-          timestamp: new Date().toLocaleTimeString(),
-          gas: `${Math.floor(45000 + Math.random() * 15000).toLocaleString()}`,
-          flash: Date.now(),
-        })
-      }, 900)
-    }
-  }
+  const inputsValid = useMemo(() => {
+    return fn.inputs.every((input) => {
+      const val = values[input.name] ?? ""
 
-  const signature = `function ${fn.name}(${fn.inputs.map((i) => `${i.type} ${i.name}`).join(", ")})${
+      if (input.type === "string") {
+        return true
+      }
+
+      return val.trim() !== ""
+    })
+  }, [fn.inputs, values])
+
+  const signature = `function ${fn.name}(${fn.inputs
+    .map((i) => `${i.type} ${i.name}`)
+    .join(", ")})${
     mode === "read"
       ? ` view returns (${fn.outputs?.map((o) => o.type).join(", ") || "void"})`
       : ""
   }`
 
+  async function execute() {
+    try {
+      setLoading(true)
+      setError(null)
+      setResponse(null)
+
+      if (!inputsValid) {
+        throw new Error("Please fill in all required parameters.")
+      }
+
+      const args = fn.inputs.map((input) =>
+        parseInputValue(values[input.name] ?? "", input.type)
+      )
+
+      if (mode === "read") {
+        const result = await readContract(config, {
+          abi: abi as Abi,
+          address: contractAddress!,
+          functionName: fn.name,
+          args,
+          chainId,
+          account: address,
+        })
+
+        setResponse({
+          value: serialize(result),
+          timestamp: new Date().toLocaleTimeString(),
+          gas: "N/A",
+          flash: Date.now(),
+        })
+
+        return
+      }
+
+      const simulation = await simulateContract(config, {
+        abi: abi as Abi,
+        address: contractAddress!,
+        functionName: fn.name,
+        args,
+        account: address,
+        chainId,
+      })
+
+      const hash = await writeContract(config, simulation.request)
+
+      const receipt = await waitForTransactionReceipt(config, {
+        hash,
+        chainId,
+      })
+
+      if (receipt.status !== "success") {
+        throw new Error("Transaction reverted.")
+      }
+
+      const explorerUrl = getExplorerUrlForTx(chainId!, hash)
+
+      setResponse({
+        value: serialize({
+          hash,
+          explorerUrl,
+          status: receipt.status,
+          gasUsed: receipt.gasUsed.toString(),
+          blockNumber: receipt.blockNumber.toString(),
+        }),
+        timestamp: new Date().toLocaleTimeString(),
+        gas: `${receipt.gasUsed.toString()} gas`,
+        flash: Date.now(),
+      })
+    } catch (err) {
+      setError(getContractError(err))
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div
+    <AccordionItem
+      value={fn.name}
       className={cn(
-        "overflow-hidden rounded-xl border bg-card transition-colors",
-        open ? accentBorder : "border-border"
+        "overflow-hidden rounded-xl border border-border bg-card transition-colors duration-200",
+        accentBorder
       )}
     >
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-elevated/50"
-      >
-        <span
-          className={cn(
-            "inline-flex h-6 items-center rounded-md px-2 font-mono text-xs font-semibold",
-            accentText,
-            accentBg
-          )}
-        >
-          {mode === "read" ? "GET" : "POST"}
-        </span>
-        <span className="font-mono text-sm font-semibold">{fn.name}</span>
-        {fn.description && (
-          <span className="hidden text-sm text-muted-foreground md:inline">
-            {fn.description}
-          </span>
+      <AccordionTrigger
+        className={cn(
+          "px-4 py-3 hover:no-underline",
+          mode === "read"
+            ? "data-[state=open]:text-success"
+            : "data-[state=open]:text-warning"
         )}
-        <Icons.ArrowDown01Icon
-          className={cn(
-            "ml-auto size-4 text-muted-foreground transition-transform",
-            {
-              "rotate-180": open,
-            }
-          )}
-        />
-      </button>
-
-      {open && (
-        <div
-          className="animate-fade-in border-t border-border px-4 py-4"
-          style={{ backgroundImage: "var(--gradient-card-glow)" }}
-        >
-          <p className="mb-4 text-sm text-muted-foreground md:hidden">
-            {fn.description}
-          </p>
-
-          <div className="mb-4">
-            <CodeBlock code={signature} language="solidity" />
-          </div>
-
-          {fn.inputs.length > 0 && (
-            <div className="mb-4">
-              <div className="mb-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                Parameters
-              </div>
-              <div className="grid gap-3">
-                {fn.inputs.map((p) => (
-                  <ParamInput
-                    key={p.name}
-                    param={p}
-                    value={values[p.name] ?? ""}
-                    onChange={(v) => setValues((s) => ({ ...s, [p.name]: v }))}
-                    accent={mode === "read" ? "success" : "warning"}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {mode === "read" && (
-            <div className="mb-4">
-              <div className="mb-2 flex items-center justify-between">
-                <div className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                  Output
-                </div>
-                <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground uppercase">
-                  {fn.outputs?.map((o) => o.type).join(", ") || "void"}
-                </span>
-              </div>
-              <div
-                key={response?.flash ?? 0}
-                className={response ? "flash-highlight rounded-md" : ""}
-              >
-                <CodeBlock
-                  code={response ? response.value : "{}"}
-                  language="json"
-                />
-              </div>
-              {response && (
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  <span className="inline-flex items-center gap-1 text-success">
-                    <Icons.CheckmarkCircle03Icon className="size-3.5" /> 200 OK
-                  </span>
-                  <span>· {response.timestamp}</span>
-                  <span>
-                    · gas used{" "}
-                    <span className="font-mono text-foreground">
-                      {response.gas}
-                    </span>
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {mode === "write" && response && (
-            <div className="mb-4">
-              <div className="mb-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                Transaction
-              </div>
-              <div key={response.flash} className="flash-highlight rounded-md">
-                <CodeBlock
-                  code={JSON.stringify(
-                    {
-                      txHash: response.value,
-                      status: "success",
-                      gasUsed: response.gas,
-                    },
-                    null,
-                    2
-                  )}
-                  language="json"
-                />
-              </div>
-              <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1 text-success">
-                  <Icons.CheckmarkCircle03Icon className="size-3.5" /> Confirmed
-                </span>
-                <span>· {response.timestamp}</span>
-              </div>
-            </div>
-          )}
-
-          <div className="flex flex-wrap items-center gap-3">
-            {mode === "write" && !walletConnected ? (
-              <Button
-                variant="outline"
-                onClick={() => setWalletConnected(true)}
-                className="border-warning/40 bg-warning/10 text-warning hover:bg-warning/20"
-              >
-                <Icons.Wallet05Icon className="size-4" />
-                Connect to Execute
-              </Button>
-            ) : (
-              <Button
-                variant={buttonVariant}
-                onClick={handleTry}
-                disabled={executing}
-              >
-                <Icons.PlayIcon className="size-4" />
-                {executing
-                  ? "Executing..."
-                  : mode === "write"
-                    ? "Execute"
-                    : "Try it"}
-              </Button>
+      >
+        <div className="flex w-full items-center gap-3 text-left">
+          <span
+            className={cn(
+              "inline-flex h-6 items-center rounded-md px-2 font-mono text-xs font-semibold",
+              accentText,
+              accentBg
             )}
+          >
+            {mode === "read" ? "GET" : "POST"}
+          </span>
 
-            {mode === "write" && (
-              <span className="inline-flex items-center gap-1.5 text-xs text-warning">
-                <Icons.Alert02Icon className="size-3.5" />
-                This will send a transaction.
-              </span>
-            )}
+          <span className="font-mono text-sm font-semibold">{fn.name}</span>
 
-            {mode === "write" && walletConnected && (
-              <span className="ml-auto inline-flex items-center gap-2 rounded-sm border border-border bg-background/60 px-2.5 py-1 font-mono text-xs">
-                <span className="h-1.5 w-1.5 rounded-full bg-success" />
-                0x9f4c...A21e
-              </span>
-            )}
-          </div>
+          <span className="hidden text-sm text-muted-foreground md:inline">
+            {fn.description || signature}
+          </span>
         </div>
-      )}
-    </div>
+      </AccordionTrigger>
+
+      <AccordionContent className="h-full! border-t border-border px-4 py-4">
+        <div className="mb-4">
+          <CodeBlock code={signature} language="solidity" />
+        </div>
+
+        {fn.inputs.length > 0 && (
+          <div className="mb-4 grid gap-3">
+            {fn.inputs.map((param) => (
+              <ParamInput
+                key={param.name}
+                param={param}
+                value={values[param.name] ?? ""}
+                onChange={(v) =>
+                  setValues((prev) => ({
+                    ...prev,
+                    [param.name]: v,
+                  }))
+                }
+                accent={mode === "read" ? "success" : "warning"}
+                disabled={loading}
+              />
+            ))}
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            <pre className="overflow-x-auto wrap-break-word whitespace-pre-wrap">
+              {error}
+            </pre>
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center gap-3">
+          {mode === "write" && !isConnected ? (
+            <ConnectWallet />
+          ) : (
+            <Button
+              variant={buttonVariant}
+              onClick={execute}
+              disabled={loading || !inputsValid}
+              isLoading={loading}
+              loadingText={mode === "read" ? "Fetching..." : "Processing..."}
+            >
+              <Icons.PlayIcon className="size-4" />
+
+              {mode === "write" ? "Execute" : "Try it"}
+            </Button>
+          )}
+        </div>
+
+        {response && (
+          <div className="mt-4">
+            <CodeBlock code={response.value} language="json" />
+          </div>
+        )}
+      </AccordionContent>
+    </AccordionItem>
   )
 }

@@ -1,11 +1,10 @@
 {
   "name": "@w3docs/core",
-  "version": "0.2.6",
+  "version": "0.3.3",
   "type": "module",
   "license": "MIT",
   "scripts": {
     "build": "tsup",
-    "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "pushout": "npm publish",
     "pushout-inc": "npm version patch --no-git-tag-version && pnpm pushout"

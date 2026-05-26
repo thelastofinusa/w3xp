@@ -55,7 +55,10 @@ export function normaliseRawAbi(
 
   const contract: UnifiedContract = {
     name: contractName,
-    description: devdoc?.description || userdoc?.description || "",
+    description:
+      devdoc?.description ||
+      userdoc?.description ||
+      "Interactive documentation generated from the contract ABI. Inspect read methods, simulate writes, and listen to events — all from one place.",
     address,
     chain: chainId,
     verified: true,

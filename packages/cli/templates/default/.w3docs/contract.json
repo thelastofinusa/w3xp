@@ -1,96 +1,220 @@
 {
-  "name": "USDC Token",
-  "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-  "chain": "Ethereum Mainnet",
+  "name": "TrezoTodo",
   "description": "Interactive documentation generated from the contract ABI. Inspect read methods, simulate writes, and listen to events — all from one place.",
+  "address": "0x2ad9172920b27074476EB7ae1963B84CE55ea1f1",
+  "chain": "11155420",
   "verified": true,
   "functions": [
     {
-      "name": "balanceOf",
+      "name": "MAX_CONTENT_LENGTH",
       "type": "read",
-      "description": "Returns the token balance of an address.",
-      "inputs": [
+      "description": "",
+      "inputs": [],
+      "outputs": [
         {
-          "name": "account",
-          "type": "address",
-          "description": "Address to query the balance of."
+          "type": "uint256"
         }
       ],
-      "outputs": [{ "type": "uint256" }]
+      "stateMutability": "view"
     },
     {
-      "name": "allowance",
-      "type": "read",
-      "description": "Returns the remaining number of tokens that spender will be allowed to spend on behalf of owner.",
+      "name": "addTask",
+      "type": "write",
+      "description": "",
       "inputs": [
-        { "name": "owner", "type": "address" },
-        { "name": "spender", "type": "address" }
+        {
+          "name": "content",
+          "type": "string",
+          "description": ""
+        }
       ],
-      "outputs": [{ "type": "uint256" }]
+      "outputs": [],
+      "stateMutability": "nonpayable"
     },
     {
-      "name": "totalSupply",
+      "name": "fetchAllTasks",
       "type": "read",
-      "description": "Returns the total token supply in circulation.",
+      "description": "",
       "inputs": [],
-      "outputs": [{ "type": "uint256" }]
+      "outputs": [
+        {
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view"
     },
     {
-      "name": "decimals",
+      "name": "fetchTaskById",
       "type": "read",
-      "description": "Number of decimals used to format token amounts.",
+      "description": "",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "uint256",
+          "description": ""
+        }
+      ],
+      "outputs": [
+        {
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "name": "getGlobalMessages",
+      "type": "read",
+      "description": "",
       "inputs": [],
-      "outputs": [{ "type": "uint8" }]
+      "outputs": [
+        {
+          "type": "string[]"
+        }
+      ],
+      "stateMutability": "view"
     },
     {
-      "name": "transfer",
-      "type": "write",
-      "description": "Moves `amount` tokens from the caller’s account to `recipient`.",
-      "inputs": [
-        { "name": "recipient", "type": "address" },
-        { "name": "amount", "type": "uint256" }
+      "name": "getTaskCount",
+      "type": "read",
+      "description": "",
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint256"
+        }
       ],
-      "outputs": [{ "type": "bool" }]
+      "stateMutability": "view"
     },
     {
-      "name": "approve",
+      "name": "removeTask",
       "type": "write",
-      "description": "Sets `amount` as the allowance of `spender` over the caller’s tokens.",
+      "description": "",
       "inputs": [
-        { "name": "spender", "type": "address" },
-        { "name": "amount", "type": "uint256" }
+        {
+          "name": "id",
+          "type": "uint256",
+          "description": ""
+        }
       ],
-      "outputs": [{ "type": "bool" }]
+      "outputs": [],
+      "stateMutability": "nonpayable"
     },
     {
-      "name": "transferFrom",
+      "name": "toggleTaskComplete",
       "type": "write",
-      "description": "Move tokens between accounts using a prior allowance.",
+      "description": "",
       "inputs": [
-        { "name": "sender", "type": "address" },
-        { "name": "recipient", "type": "address" },
-        { "name": "amount", "type": "uint256" }
+        {
+          "name": "id",
+          "type": "uint256",
+          "description": ""
+        }
       ],
-      "outputs": [{ "type": "bool" }]
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "name": "updateTaskContent",
+      "type": "write",
+      "description": "",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "uint256",
+          "description": ""
+        },
+        {
+          "name": "newContent",
+          "type": "string",
+          "description": ""
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
     }
   ],
   "events": [
     {
-      "name": "Transfer",
-      "signature": "Transfer(address indexed from, address indexed to, uint256 value)",
+      "name": "TaskAdded",
+      "signature": "TaskAdded(address,uint256,string)",
+      "description": "",
       "inputs": [
-        { "name": "from", "type": "address", "indexed": true },
-        { "name": "to", "type": "address", "indexed": true },
-        { "name": "value", "type": "uint256", "indexed": false }
+        {
+          "name": "user",
+          "type": "address",
+          "indexed": true
+        },
+        {
+          "name": "taskId",
+          "type": "uint256",
+          "indexed": true
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "indexed": false
+        }
       ]
     },
     {
-      "name": "Approval",
-      "signature": "Approval(address indexed owner, address indexed spender, uint256 value)",
+      "name": "TaskRemoved",
+      "signature": "TaskRemoved(address,uint256)",
+      "description": "",
       "inputs": [
-        { "name": "owner", "type": "address", "indexed": true },
-        { "name": "spender", "type": "address", "indexed": true },
-        { "name": "value", "type": "uint256", "indexed": false }
+        {
+          "name": "user",
+          "type": "address",
+          "indexed": true
+        },
+        {
+          "name": "taskId",
+          "type": "uint256",
+          "indexed": true
+        }
+      ]
+    },
+    {
+      "name": "TaskToggled",
+      "signature": "TaskToggled(address,uint256,bool)",
+      "description": "",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "address",
+          "indexed": true
+        },
+        {
+          "name": "taskId",
+          "type": "uint256",
+          "indexed": true
+        },
+        {
+          "name": "completed",
+          "type": "bool",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "name": "TaskUpdated",
+      "signature": "TaskUpdated(address,uint256,string)",
+      "description": "",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "address",
+          "indexed": true
+        },
+        {
+          "name": "taskId",
+          "type": "uint256",
+          "indexed": true
+        },
+        {
+          "name": "newContent",
+          "type": "string",
+          "indexed": false
+        }
       ]
     }
   ]

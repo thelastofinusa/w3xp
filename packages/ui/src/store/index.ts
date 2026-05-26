@@ -4,16 +4,16 @@ import { TabKey } from "../types/index"
 interface UIState {
   search: string
   activeTab: TabKey
-  chain: string // e.g. 'Ethereum'
+  chain: number // e.g. 1
   setSearch: (query: string) => void
   setActiveTab: (tab: TabKey) => void
-  setChain: (chain: string) => void
+  setChain: (chain: number) => void
 }
 
 export const useUIStore = create<UIState>((set) => ({
   search: "",
   activeTab: "read",
-  chain: "Ethereum",
+  chain: 1,
   setSearch: (search) => set({ search }),
   setActiveTab: (activeTab) => set({ activeTab }),
   setChain: (chain) => set({ chain }),

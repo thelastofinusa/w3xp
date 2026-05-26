@@ -1,10 +1,10 @@
 export const siteConfig = {
   name: "w3docs",
-  slogan: "Beautiful, interactive docs for smart contracts.",
+  slogan: "Interactive documentation for deployed smart contracts.",
   username: "thelastofinusa",
   nickname: "Holiday",
   description:
-    "w3docs is a CLI tool that turns deployed smart contracts into beautiful, interactive documentation websites.",
+    "A CLI tool that generates interactive smart contract documentation websites directly from deployed contracts.",
   url:
     process.env.NODE_ENV === "development"
       ? "http://localhost:3000"
