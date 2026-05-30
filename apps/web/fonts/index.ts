@@ -10,11 +10,11 @@ const fontSans = localFont({
 const fontSerif = localFont({
   src: [
     {
-      path: "./PTSerif/PTSerif-Regular.ttf",
+      path: "./Lusitana/Lusitana-Regular.ttf",
       weight: "400",
     },
     {
-      path: "./PTSerif/PTSerif-Bold.ttf",
+      path: "./Lusitana/Lusitana-Bold.ttf",
       weight: "700",
     },
   ],

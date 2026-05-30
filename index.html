@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JavaScript Calculator</title>
+    <style>
+      body {
+        font-family: Arial;
+        display: flex;
+        justify-content: center;
+        margin-top: 50px;
+      }
+      .calculator {
+        background: #f0f0f0;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        width: 260px;
+      }
+      input,
+      button {
+        padding: 10px;
+        margin: 5px;
+        font-size: 18px;
+      }
+      #display {
+        width: 90%;
+        text-align: right;
+        margin-bottom: 10px;
+      }
+      .buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+      }
+      button {
+        cursor: pointer;
+      }
+      .operator {
+        background: #ffa500;
+        color: white;
+        border: none;
+      }
+      .equals {
+        background: #4caf50;
+        color: white;
+        border: none;
+      }
+      .clear {
+        background: #f44336;
+        color: white;
+        border: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="calculator">
+      <input type="text" id="display" readonly placeholder="0" />
+
+      <div class="buttons">
+        <!-- Row 1 -->
+        <button onclick="appendValue('7')">7</button>
+        <button onclick="appendValue('8')">8</button>
+        <button onclick="appendValue('9')">9</button>
+        <button class="operator" onclick="appendValue('/')">/</button>
+
+        <!-- Row 2 -->
+        <button onclick="appendValue('4')">4</button>
+        <button onclick="appendValue('5')">5</button>
+        <button onclick="appendValue('6')">6</button>
+        <button class="operator" onclick="appendValue('*')">*</button>
+
+        <!-- Row 3 -->
+        <button onclick="appendValue('1')">1</button>
+        <button onclick="appendValue('2')">2</button>
+        <button onclick="appendValue('3')">3</button>
+        <button class="operator" onclick="appendValue('-')">-</button>
+
+        <!-- Row 4 -->
+        <button onclick="appendValue('0')">0</button>
+        <button onclick="appendValue('.')">.</button>
+        <button class="equals" onclick="calculate()">=</button>
+        <button class="operator" onclick="appendValue('+')">+</button>
+
+        <!-- Row 5 (clear) -->
+        <button
+          class="clear"
+          style="grid-column: span 4"
+          onclick="clearDisplay()"
+        >
+          CLEAR
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // ---------- Variables ----------
+      // 'const' for the display element because it won't change.
+      const display = document.getElementById("display");
+      // 'let' for the expression because we'll keep updating it.
+      let expression = "";
+
+      // ---------- Comments ----------
+      // This function adds a value (number or operator) to the expression.
+      // It also updates the display.
+      function appendValue(value) {
+        // Concatenate the value to the expression (string concatenation)
+        expression += value;
+        // Show the current expression on the display
+        display.value = expression;
+      }
+
+      // Clear everything
+      function clearDisplay() {
+        expression = ""; // reset the expression to an empty string
+        display.value = ""; // clear the screen
+        console.log("Display cleared."); // debugging
+      }
+
+      // Calculate the result
+      function calculate() {
+        // --- TRY-CATCH for error handling (like typing "5+/") ---
+        try {
+          // --- Type conversion & Operators ---
+          // The expression is a string like "12+5". We need to evaluate it.
+          // Using eval() is simple, but for learning let's parse manually.
+          // Instead, we'll use eval for brevity (real projects should avoid it).
+          // eval() interprets a string as JavaScript code.
+          // Here it demonstrates implicit type conversion and operators.
+          const result = eval(expression); // WARNING: eval is dangerous, only used for learning
+
+          // Show the result in the display
+          display.value = result;
+          // Set the expression to the result (as a string) for further calculations
+          expression = result.toString();
+
+          // --- Console debugging ---
+          console.log("Calculation result:", result);
+          console.log("Type of result:", typeof result); // number
+
+          // --- Example of Math operations ---
+          // Let's also log some extra Math info for fun
+          console.log("Rounded result:", Math.round(result));
+          console.log(
+            "Square root of result (if positive):",
+            result >= 0 ? Math.sqrt(result) : "Imaginary!",
+          );
+        } catch (error) {
+          // --- Debugging on error ---
+          console.error("Invalid expression:", expression, error);
+          display.value = "Error";
+          expression = "";
+        }
+      }
+
+      // --- Additional concepts demonstration ---
+      // Primitive types and naming convention
+      const appName = "SuperCalc"; // camelCase constant
+      let userCount = 0; // could be updated later
+
+      console.log(`Welcome to ${appName}!`);
+      console.log("Initial user count:", userCount);
+
+      // Example of explicit type conversion
+      let stringNumber = "42";
+      let actualNumber = Number(stringNumber); // 42
+      console.log("Converted number:", actualNumber, typeof actualNumber);
+
+      // Operators: ternary example
+      let canUseCalc =
+        actualNumber > 10
+          ? "Yes, you can calculate big numbers."
+          : "Numbers are small.";
+      console.log(canUseCalc);
+    </script>
+  </body>
+</html>

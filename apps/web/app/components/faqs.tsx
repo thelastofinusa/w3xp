@@ -38,7 +38,7 @@ export const FAQs = () => {
       })}
     >
       <div className={containerVariants({ size: "xs" })}>
-        <h2 className="mt-4 max-w-sm font-serif text-3xl tracking-tight text-foreground sm:text-4xl">
+        <h2 className="mt-4 max-w-md font-serif text-3xl tracking-tight text-foreground sm:text-4xl md:text-[40px]">
           Frequently Asked Questions
         </h2>
         <p className="mt-4 max-w-xl text-sm text-muted-foreground sm:text-base">

@@ -12,8 +12,8 @@ export const ProductPreview = () => {
       })}
     >
       <div className={containerVariants({ size: "xs" })}>
-        <h2 className="mt-4 max-w-sm font-serif text-3xl tracking-tight text-foreground sm:text-4xl">
-          From contract address to interface
+        <h2 className="mt-4 max-w-md font-serif text-3xl tracking-tight text-foreground sm:text-4xl md:text-[40px]">
+          From address to interface
         </h2>
         <p className="mt-4 max-w-xl text-sm text-muted-foreground sm:text-base">
           Point w3xp at a deployed contract address and generate an
@@ -43,17 +43,17 @@ export const ProductPreview = () => {
               src={imagePath("hero-light.png")}
               alt="preview"
               width={950}
-              height={550}
+              height={350}
               className="object-cover dark:hidden"
-              loading="eager"
+              loading="lazy"
             />
             <Image
               src={imagePath("hero-dark.png")}
               alt="preview"
               width={950}
-              height={550}
+              height={350}
               className="hidden object-cover dark:block"
-              loading="eager"
+              loading="lazy"
             />
           </div>
         </div>
